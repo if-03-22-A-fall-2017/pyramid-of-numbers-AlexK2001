@@ -23,7 +23,7 @@
 */
 struct BigInt {
 	/** number of digits of the big int. */
-	unsigned int digits_count;
+	int digits_count;
 
 	/** array of digits of big int. */
 	unsigned int the_int[MAX_DIGITS];
@@ -83,64 +83,110 @@ void copy_big_int(const struct BigInt *from, struct BigInt *to);
 */
 int main(int argc, char *argv[])
 {
-	char number;
-  enter_number(&number);
+	char number[MAX_DIGITS];
+  enter_number(number);
 	int length = strlen(number);
 	struct BigInt big_int;
 	struct BigInt big_result;
-	strtobig_int(number, length, big_int);
-  print_big_int(&big_int);
-	for(int faktor = 1 ; faktor <10;faktor++)
-	{
-		multiply(&big_int,faktor,&big_result);
+	strtobig_int(number, length, &big_int);
 
+	for(int faktor = 2; faktor < 10;faktor++)
+	{
 	  print_big_int(&big_int);
 		printf(" * %d = ", faktor);
+		multiply(&big_int,faktor,&big_result);
+		copy_big_int(&big_result, &big_int);
 	  print_big_int(&big_result);
+		printf("\n" );
+	}
+	for (int divisor = 2;divisor < 10;divisor++)
+	{
+		print_big_int(&big_int);
+		printf(" / %d = ", divisor);
+		divide(&big_int, divisor,&big_result);
+		copy_big_int(&big_result, &big_int);
+		print_big_int(&big_result);
+		printf("\n" );
 	}
 
 	return 0;
 }
 void enter_number(char* number)
 {
-	printf("Please enter a number");
+	printf("Please enter a number: ");
 	scanf("%s",number);
 }
 void multiply(const struct BigInt *big_int, int factor, struct BigInt *big_result)
 {
-  int carry = 0;;
-	for (int i = 0; i < big_int->digits_count;i++;)
+	int carry = 0;
+	int result = 1;
+	big_result->digits_count = 0;
+	int i = 0;
+	for (i = 0; i < big_int->digits_count;i++)
 	{
-		int result = big_int->the_int[i] * faktor;
+	 	result = big_int->the_int[i] * factor + carry;
 		carry = (int) (result / 10);
-		big_result->the_int[i] = result % 10 + carry;
+		big_result->digits_count++;
+		big_result->the_int[i] = result % 10;
 	}
 	if (carry > 0)
 	{
-		big_result->the_int[i];
+		big_result->digits_count++;
+		big_result->the_int[i] = carry;
+	}
+}
+void divide(const struct BigInt *big_int, int divisor, struct BigInt *big_result)
+{
+	int carry = 0;
+	int result = 1;
+	big_result->digits_count = 0;
+	int i = 0;
+	for (i = big_int->digits_count; i >= 0;i--)
+	{
+	 	result = big_int->the_int[i] / divisor + carry;
+		carry = (int) (result % divisor);
+		big_result->digits_count++;
+		big_result->the_int[i] = result;
+	}
+	if (carry > 0)
+	{
+		big_result->digits_count--;
+		big_result->the_int[i] = carry;
+	}
+}
+void copy_big_int(const struct BigInt *from, struct BigInt *to)
+{
+	to->digits_count = from->digits_count;
+	for (int i = 0; i < from->digits_count;i++)
+	{
+		to->the_int[i] = from->the_int[i];
 	}
 }
 int strtobig_int(const char *number, int len, struct BigInt *big_int)
 {
-	int count = len -1;
+	int count = 0;
 	for (int i = 0; i < len; i++)
 	{
-		if (input[i] - '0' >= 0 && input[i] -'9' <= 9)
+		if (number[i] - '0' >= 0 && number[i] -'9' <= 9)
 		{
-			big_int->the_int[count] = input[i] - '0';
-			count--;
+			big_int->the_int[count] = number[i] - '0';
+
+			count++;
 		}
+
 		else
 		{
+			printf("Error\n");
 			return -2;
 		}
+
 	}
-	big_int->digits_count = i;
+	big_int->digits_count = count;
 	return 0;
 }
 void print_big_int(const struct BigInt *big_int)
 {
-	for (int i = 0;  i < big_int->digits_count ; i++)
+	for (int i = big_int->digits_count -1;i >= 0 ; i--)
 	{
 		printf("%d",big_int->the_int[i]);
 	}
